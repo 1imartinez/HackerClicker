@@ -1,3 +1,4 @@
+import kivy
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import StringProperty
@@ -6,6 +7,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.widget import Widget
 from kivy import clock
 
+kivy('1.11.1')
 formatting = """
 <MyScreenManager>:
     StartScreen:
