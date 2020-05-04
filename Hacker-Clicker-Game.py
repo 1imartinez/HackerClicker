@@ -1,18 +1,16 @@
-import kivy
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import StringProperty
 from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.widget import Widget
-from kivy import clock
 
-kivy('1.11.1')
 formatting = """
 <MyScreenManager>:
     StartScreen:
     CreateNewCharacterScreen:
     MainGameScreen:
+    
 <StartScreen>:
     name: 'start'
     BoxLayout:
@@ -20,13 +18,14 @@ formatting = """
         Label:
             color: [218, 10, 17, 1]
             text: root.instructions  
-            font_size: 40 
+            font_size: 30 
         TextInput:
             id: save_code
             font_size: 28
         Button:
             text: 'Press me to go to the Game Screen'
             on_press: root.load_or_start_new(save_code.text)
+
 <CreateNewCharacterScreen>:
     name: 'character'
     BoxLayout:
@@ -41,6 +40,7 @@ formatting = """
         Button:
             text: 'Enter a name for your character'
             on_press: root.create_character(name.text)
+
 <MainGameScreen>:
     name: 'game'
     BoxLayout:
@@ -60,12 +60,9 @@ formatting = """
                     id: infobox_1
                     orientation: 'horizontal'
                     Label:
-                        id: adsnum
-                        text: "Number of ads: " + root.ads
+                        text: "Top Owned"
                     Button:
-                        id: adsprice
-                        text: "Buy an ad for: " + root.ads_price
-                        on_press: root.buy_ad()
+                        text: "Button Top"
                 BoxLayout:
                     id: infobox_2
                     orientation: 'horizontal'                   
@@ -91,11 +88,11 @@ formatting = """
             orientation: 'horizontal'
             Button:
                 text: 'Hacks'
-                on_press: root.read_a_book()
+                on_press: root.hacks()
                 on_press: root.add_time(25)   
             Button:
                 text: 'Phishing'
-                on_press: root.workout() 
+                on_press: root.phishing() 
                 on_press: root.add_time(15)  
             Button:
                 text: 'Sell information' 
@@ -106,9 +103,8 @@ Builder.load_string(formatting)
 
 
 class PlayerStatistics:
-    def __init__(self, phishing=0, hacks=0, time=0, ascension=0, jtier=10, liquidfunds=0, ):
+    def __init__(self, phishing=0, hacks=0, time=0, ascension=0, liquidfunds=0):
         self.wallet = liquidfunds
-        self.jobtier = jtier
         self.ascension = ascension
         self.time: int = time
         self.name: str = ""
@@ -132,8 +128,6 @@ class PlayerStatistics:
             print("That Parameter does not exist")
 
     # need to change this to something else
-    def next_ads_price(self):
-        return self.ads + 0.1 * self.ads
 
     def increment_hacks(self, amount=1):
         self.hacks = self.hacks + amount
@@ -141,7 +135,7 @@ class PlayerStatistics:
 
     def __str__(self):
         return str(
-            "Name: " + self.name + "|" + "time: " + str(self.time)
+            "Name: " + self.name + " | " + "time: " + str(self.time)
             + "\n" + "Phishing: " + str(self.phishing)
             + "\n" + "Hacks: " + str(self.hacks)
             + "\n" + "$" + str(self.wallet)
@@ -151,7 +145,8 @@ class PlayerStatistics:
         # ads
         if self.time % 50 == 0:
             # add money to wallet from ad revenue
-            self.wallet = self.wallet + self.ads * 5
+            self.wallet = self.wallet
+
         self.time = self.time + amount
         pass
 
@@ -161,26 +156,11 @@ class PlayerStatistics:
         pass
 
     def calculate_paycheck(self):
-        phishing_modifier = .000001
-        hacks_modifier = .00001
+        hacks_modifier = 5.00
         asc_modifier = (self.ascension + .1)
-        money_from_phishing = (self.phishing * phishing_modifier * asc_modifier)
         money_from_hacks = self.hacks * hacks_modifier * asc_modifier
-        paycheck = self.jobtier * (money_from_phishing + money_from_hacks)
+        paycheck = money_from_hacks
         return paycheck
-
-    def increment_ads(self):
-        # Check if we have enough money
-        price = self.next_ads_price()
-        if self.wallet > price:
-            # If we do, then remove from wallet
-            self.wallet = self.wallet - price
-            # add the ad
-            self.ads = self.ads + 1
-            # print("Incremented an add, total ads: " + str(self.ads))
-        else:
-            pass
-        pass
 
 
 # Create the screen manager = sm
@@ -198,13 +178,13 @@ class StartScreen(Screen):
     def load_or_start_new(self, savedata=''):
         # For now we always start a new game
         if savedata != '':
-            self.load_game(savedata)
+            self.load_game()
         else:
             self.start_new_game()
         pass
 
     # Right now load and new do the same thing, but that might change in the future
-    def load_game(self, data):
+    def load_game(self):
         self.manager.current = 'character'
         pass
 
@@ -230,8 +210,6 @@ class CreateNewCharacterScreen(Screen):
             self.data_stats = PlayerStatistics()
             self.data_stats.set_name(username)
             self.manager.get_screen('game').display = str(self.data_stats)
-            self.manager.get_screen('game').adsnum = str(self.data_stats.ads)
-            self.manager.get_screen('game').adsprice = str(self.data_stats.next_ads_price())
             self.manager.current = 'game'
         else:
             self.instructions = self.fail_instructions
@@ -250,14 +228,6 @@ class MainGameScreen(Screen):
     ads_price = StringProperty("WRONG price")
 
     # StringProperty("Name: " + "Dummy" + "\n" + "Strength: " + str(Strength))
-    def buy_ad(self):
-        stats: PlayerStatistics = self.get_data()
-        stats.increment_ads()
-        # update the ad price on the button
-        self.ads_price = str(stats.next_ads_price())
-        # update the text of the number of ads
-        self.ads = str(stats.ads)
-        self.display = str(stats)
 
     def phishing(self):
         stats: PlayerStatistics = self.get_data()
@@ -280,7 +250,7 @@ class MainGameScreen(Screen):
         self.display = str(stats)
 
 
-class Dataimporter():
+class Dataimporter:
     def __init__(self, string):
         self.data = self.convertStringtoDict(string)
 
@@ -402,7 +372,9 @@ def build():
 
 
 class GUIApp(App):
-    pass
+
+    def build(self):
+        return MyScreenManager()
 
 
 # Entry point into the game
