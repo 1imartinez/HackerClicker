@@ -5,6 +5,7 @@ from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.widget import Widget
 
+
 formatting = """
 <MyScreenManager>:
     StartScreen:
@@ -89,21 +90,22 @@ formatting = """
             Button:
                 text: 'Hacks'
                 on_press: root.hacks()
-                on_press: root.add_time(25)   
+                on_press: root.add_time(15)   
             Button:
                 text: 'Phishing'
                 on_press: root.phishing() 
-                on_press: root.add_time(15)  
+                on_press: root.add_time(50)  
             Button:
                 text: 'Sell information' 
-                on_press: root.get_paid()
-                on_press: root.add_time(50)             
+                on_press: root.sellHacks()
+                on_press: root.add_time(5)             
 """
 Builder.load_string(formatting)
 
 
 class PlayerStatistics:
-    def __init__(self, phishing=0, hacks=0, time=0, ascension=0, liquidfunds=0):
+    def __init__(self, phishing=0, hacks=0, time=0, ascension=0, liquidfunds=0, percent=0):
+        self.tracker = percent
         self.wallet = liquidfunds
         self.ascension = ascension
         self.time: int = time
@@ -111,9 +113,6 @@ class PlayerStatistics:
         self.phishing: int = phishing
         self.hacks: int = hacks
         self.attributeDict = {"PHI": self.phishing, "HAK": self.hacks}
-
-    def create_from_save(self):
-        pass
 
     def set_name(self, username):
         self.name = username
@@ -127,10 +126,12 @@ class PlayerStatistics:
         else:
             print("That Parameter does not exist")
 
-    # need to change this to something else
+    def create_from_save(self):
+        pass
 
     def increment_hacks(self, amount=1):
         self.hacks = self.hacks + amount
+
         pass
 
     def __str__(self):
@@ -139,28 +140,28 @@ class PlayerStatistics:
             + "\n" + "Phishing: " + str(self.phishing)
             + "\n" + "Hacks: " + str(self.hacks)
             + "\n" + "$" + str(self.wallet)
+            + "\n" + "Police Tracker: " + str(self.tracker)
         )
 
+    def sellHacks(self, amount=-1, add=10):
+        self.hacks = self.hacks + amount
+        self.wallet = self.wallet + add
+
+    pass
+
     def increment_time(self, amount=1):
-        # ads
-        if self.time % 50 == 0:
-            # add money to wallet from ad revenue
-            self.wallet = self.wallet
-
         self.time = self.time + amount
-        pass
 
-    def get_paid(self):
-        paycheck = self.calculate_paycheck()
-        self.wallet = self.wallet + paycheck
-        pass
+    pass
 
-    def calculate_paycheck(self):
-        hacks_modifier = 5.00
-        asc_modifier = (self.ascension + .1)
-        money_from_hacks = self.hacks * hacks_modifier * asc_modifier
-        paycheck = money_from_hacks
-        return paycheck
+    # End Game hopefully
+    def policeTracker(self, amount=5):
+        # This checks if Phishing is equal to 10 then the police tracker starts
+        if self.phishing == 10:
+            self.tracker = self.tracker + amount
+        else:
+            # If Phishing does not equal 10 the police tracker stays zero
+            self.tracker = 0
 
 
 # Create the screen manager = sm
@@ -222,8 +223,8 @@ class MainGameScreen(Screen):
     def get_data(self) -> PlayerStatistics:
         return self.manager.get_screen('character').data_stats
 
-    display = StringProperty("IF THIS IS SHOWING SOMETHING WENT WRONG")
-    owned = StringProperty("IF THIS IS SHOWING SOMETHING WENT WRONG")
+    display = StringProperty()
+    owned = StringProperty()
     ads = StringProperty("WRONG ads")
     ads_price = StringProperty("WRONG price")
 
@@ -244,9 +245,10 @@ class MainGameScreen(Screen):
         stats.increment_time(amount)
         self.display = str(stats)
 
-    def get_paid(self):
+    # Decreases number of Hacks
+    def sellHacks(self):
         stats: PlayerStatistics = self.get_data()
-        stats.get_paid()
+        stats.sellHacks()
         self.display = str(stats)
 
 
@@ -336,6 +338,7 @@ class WelcomeScreen(Screen):
     pass
 
 
+# Save game area
 class LoadSaveScreen(Screen):
     defaultText = StringProperty(str('''
         Type in a name for yourself
@@ -350,21 +353,24 @@ class LoadSaveScreen(Screen):
         self.data_stats = PlayerData(data)
         self.manager.get_screen('game').display = str(self.data_stats)
 
+
+pass
+
+
+# Create a new save data if text field isn't blank
+def createSaveData(self, username):
+    if username != '':
+        self.data_stats = PlayerData()
+        self.data_stats.setName(username)
+        self.manager.get_screen('game').display = str(self.data_stats)
+        self.manager.current = 'game'
+    # Display failText until textbox is no longer empty
+    else:
+        self.defaultText = self.failText
     pass
 
-    # Create a new save data if text field isn't blank
-    def createSaveData(self, username):
-        if username != '':
-            self.data_stats = PlayerData()
-            self.data_stats.setName(username)
-            self.manager.get_screen('game').display = str(self.data_stats)
-            self.manager.current = 'game'
-        # Display failText until textbox is no longer empty
-        else:
-            self.defaultText = self.failText
-        pass
 
-    pass
+pass
 
 
 def build():
